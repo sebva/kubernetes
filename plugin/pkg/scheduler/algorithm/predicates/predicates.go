@@ -510,6 +510,8 @@ func GetResourceRequest(pod *v1.Pod) *schedulercache.Resource {
 				result.MilliCPU += rQuantity.MilliValue()
 			case v1.ResourceNvidiaGPU:
 				result.NvidiaGPU += rQuantity.Value()
+			case v1.ResourceEPC:
+				result.EPC += rQuantity.Value()
 			case v1.ResourceStorageOverlay:
 				result.StorageOverlay += rQuantity.Value()
 			default:
@@ -543,6 +545,10 @@ func GetResourceRequest(pod *v1.Pod) *schedulercache.Resource {
 			case v1.ResourceNvidiaGPU:
 				if gpu := rQuantity.Value(); gpu > result.NvidiaGPU {
 					result.NvidiaGPU = gpu
+				}
+			case v1.ResourceEPC:
+				if epc := rQuantity.Value(); epc > result.EPC {
+					result.EPC = epc
 				}
 			case v1.ResourceStorageOverlay:
 				if overlay := rQuantity.Value(); overlay > result.StorageOverlay {
@@ -584,7 +590,7 @@ func PodFitsResources(pod *v1.Pod, meta interface{}, nodeInfo *schedulercache.No
 		// We couldn't parse metadata - fallback to computing it.
 		podRequest = GetResourceRequest(pod)
 	}
-	if podRequest.MilliCPU == 0 && podRequest.Memory == 0 && podRequest.NvidiaGPU == 0 && len(podRequest.OpaqueIntResources) == 0 {
+	if podRequest.MilliCPU == 0 && podRequest.Memory == 0 && podRequest.NvidiaGPU == 0 && podRequest.EPC == 0 && len(podRequest.OpaqueIntResources) == 0 {
 		return len(predicateFails) == 0, predicateFails, nil
 	}
 
@@ -597,6 +603,9 @@ func PodFitsResources(pod *v1.Pod, meta interface{}, nodeInfo *schedulercache.No
 	}
 	if allocatable.NvidiaGPU < podRequest.NvidiaGPU+nodeInfo.RequestedResource().NvidiaGPU {
 		predicateFails = append(predicateFails, NewInsufficientResourceError(v1.ResourceNvidiaGPU, podRequest.NvidiaGPU, nodeInfo.RequestedResource().NvidiaGPU, allocatable.NvidiaGPU))
+	}
+	if allocatable.EPC < podRequest.EPC+nodeInfo.RequestedResource().EPC {
+		predicateFails = append(predicateFails, NewInsufficientResourceError(v1.ResourceEPC, podRequest.EPC, nodeInfo.RequestedResource().EPC, allocatable.EPC))
 	}
 
 	scratchSpaceRequest := podRequest.StorageScratch
