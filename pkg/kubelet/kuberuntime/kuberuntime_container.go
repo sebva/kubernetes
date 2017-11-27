@@ -130,6 +130,19 @@ func (m *kubeGenericRuntimeManager) startContainer(podSandboxID string, podSandb
 		}, ref)
 	}
 
+	// SGX specific, register EPC limit using CGroup name
+	cgroupName := m.runtimeHelper.GetPodCgroupParent(pod)
+	m.recorder.Eventf(ref, v1.EventTypeNormal, "SGX", "CGroup name: %s", cgroupName)
+	for key, value := range container.Resources.Limits {
+		resourceName := string(key)
+		if resourceName != "intel.com/sgx" {
+			continue
+		}
+
+		m.recorder.Eventf(ref, v1.EventTypeNormal, "SGX", "Container %s has %d pages of EPC as limit", container.Name, int(value.Value()))
+	}
+
+
 	// Step 3: start the container.
 	err = m.runtimeService.StartContainer(containerID)
 	if err != nil {
