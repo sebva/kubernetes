@@ -139,7 +139,9 @@ func (m *kubeGenericRuntimeManager) startContainer(podSandboxID string, podSandb
 			continue
 		}
 
-		m.recorder.Eventf(ref, v1.EventTypeNormal, "SGX", "Container %s has %d pages of EPC as limit", container.Name, int(value.Value()))
+		epcLimit := uint32(value.Value())
+		m.recorder.Eventf(ref, v1.EventTypeNormal, "SGX", "Container %s has %d pages of EPC as limit", container.Name, epcLimit)
+		CommunicateLimitsToSgxDriver(cgroupName, epcLimit)
 	}
 
 

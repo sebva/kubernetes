@@ -8,6 +8,7 @@ load(
 
 go_library(
     name = "go_default_library",
+    cgo = True,
     srcs = [
         "doc.go",
         "fake_kuberuntime_manager.go",
@@ -22,6 +23,7 @@ go_library(
         "labels.go",
         "legacy.go",
         "security_context.go",
+        "sgx_limits.go",
     ],
     deps = [
         "//pkg/api:go_default_library",
