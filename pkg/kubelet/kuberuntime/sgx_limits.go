@@ -21,7 +21,9 @@ package kuberuntime
 //    strncpy(limits_struct.cgroup_path, cgroup_name, 200);
 //    limits_struct.max_pages = limit;
 //
-//    return ioctl(fd, 1087153156, &limits_struct);
+//    int ret = ioctl(fd, 1087153156, &limits_struct);
+//    close(fd);
+//    return ret;
 //}
 import "C"
 
